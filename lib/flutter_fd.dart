@@ -10,4 +10,4 @@ export 'src/mvvm/screen_view.dart'
     show StatefulScreenView, StatelessScreenView, StatefulScreenViewState;
 export 'src/mvvm/screen_view_model.dart'
     show ScreenViewModel, StatefulScreenViewModel;
-export 'src/navigation_manager.dart' show NavigationManager;
+export 'src/navigation_manager.dart' show NavigationManager, INavigator;
