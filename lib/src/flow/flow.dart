@@ -1,8 +1,8 @@
 import 'dart:developer';
 
-import 'package:fd_dart/fd_dart.dart';
 import 'package:flutter_fd/src/flow/flow_state.dart';
 import 'package:flutter_fd/src/mvvm/screen.dart';
+import 'package:flutter_fd/src/subscription/contextual_object.dart';
 import 'package:meta/meta.dart';
 import 'package:rxdart/rxdart.dart';
 
