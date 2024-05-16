@@ -30,6 +30,14 @@ class TestFlow extends Flow<StateId> {
     setState(stateId);
   }
 
+  void cancelFlow() {
+    cancel();
+  }
+
+  void completeFlow() {
+    complete();
+  }
+
   @override
   String name() {
     return '';
@@ -102,7 +110,7 @@ void main() {
     flow.setStartState(StateId.start);
 
     flow.init();
-    flow.cancel();
+    flow.cancelFlow();
 
     await completer.future;
 
@@ -126,7 +134,7 @@ void main() {
     flow.setStartState(StateId.start);
 
     flow.init();
-    flow.complete();
+    flow.completeFlow();
 
     await completer.future;
 
@@ -152,7 +160,7 @@ void main() {
     flow.setStartState(StateId.start);
 
     flow.init();
-    flow.cancel();
+    flow.cancelFlow();
 
     await completer.future;
 
@@ -204,7 +212,7 @@ void main() {
     flow.setStartState(StateId.start);
 
     flow.init();
-    flow.complete();
+    flow.completeFlow();
 
     await completer.future;
 
@@ -310,7 +318,7 @@ void main() {
 
     flow.init();
     flow.set(StateId.stop);
-    flow.complete();
+    flow.completeFlow();
 
     await completer.future;
 

@@ -54,6 +54,7 @@ abstract class Flow<ID> extends ContextualObject {
     viewChangeSubject.add(null);
   }
 
+  @protected
   void complete() {
     if (_status == FlowStatus.idle) {
       _status = FlowStatus.completed;
@@ -70,6 +71,7 @@ abstract class Flow<ID> extends ContextualObject {
     return _states[state] == _currentState;
   }
 
+  @protected
   void cancel() {
     if (_status == FlowStatus.idle) {
       _status = FlowStatus.canceled;
