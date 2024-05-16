@@ -19,14 +19,12 @@ abstract class StatefulScreenViewState<V extends StatefulScreenView<VM>,
     VM extends StatefulScreenViewModel> extends State<V> {
   VM get viewModel => widget.viewModel;
 
-  @mustCallSuper
   @override
   void initState() {
     widget.viewModel.init();
     super.initState();
   }
 
-  @mustCallSuper
   @override
   void dispose() {
     widget.viewModel.dispose();

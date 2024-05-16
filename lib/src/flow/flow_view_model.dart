@@ -1,8 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart' as material;
 import 'package:flutter_fd/src/flow/flow.dart';
 import 'package:flutter_fd/src/mvvm/screen.dart';
 import 'package:flutter_fd/src/mvvm/screen_view_model.dart';
-import 'package:rxdart/rxdart.dart';
 
 class FlowScreenState {
   FlowScreenState({required this.title, this.view});
@@ -11,43 +12,47 @@ class FlowScreenState {
   material.Widget? view;
 }
 
-class FlowScreenViewModel extends StatefulScreenViewModel {
-  FlowScreenViewModel(this.flow);
+class FlowScreenViewModel extends DataScreenViewModel<FlowScreenState> {
+  FlowScreenViewModel(this._flow);
 
-  final Flow flow;
-
-  final _stateSubject =
-      BehaviorSubject<FlowScreenState>.seeded(FlowScreenState(title: ''));
-
-  Stream<FlowScreenState> get state => _stateSubject;
+  final Flow _flow;
+  StreamSubscription<Screen?>? _viewChangeSubscription;
 
   void _onViewChanged(Screen? screen) {
     if (screen == null) {
-      _stateSubject.add(_stateSubject.value..view = null);
+      final value = getLastPublishedValue();
+      publish(value..view = null);
     } else {
-      _stateSubject.add(FlowScreenState(
+      publish(FlowScreenState(
           title: screen.viewModel.getTitle(), view: screen.view));
     }
   }
 
   @override
   void init() {
-    flow.init();
-    flow.viewChangeSubject.listen(_onViewChanged);
+    super.init();
+    _flow.init();
+    _viewChangeSubscription = _flow.viewChangeSubject.listen(_onViewChanged);
   }
 
   void onPopInvoked() {
-    flow.onPopInvoked();
+    _flow.onPopInvoked();
   }
 
   @override
   void dispose() {
-    flow.dispose();
-    _stateSubject.close();
+    _viewChangeSubscription!.cancel();
+    _flow.dispose();
+    super.dispose();
   }
 
   @override
   String getTitle() {
     return '';
+  }
+
+  @override
+  FlowScreenState getEmptyState() {
+    return FlowScreenState(title: '');
   }
 }

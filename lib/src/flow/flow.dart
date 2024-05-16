@@ -1,9 +1,9 @@
 import 'dart:developer';
 
 import 'package:fd_dart/fd_dart.dart';
-import 'package:flutter/material.dart' as material;
 import 'package:flutter_fd/src/flow/flow_state.dart';
 import 'package:flutter_fd/src/mvvm/screen.dart';
+import 'package:meta/meta.dart';
 import 'package:rxdart/rxdart.dart';
 
 enum FlowStatus {
@@ -12,19 +12,23 @@ enum FlowStatus {
   idle,
 }
 
-abstract class Flow<S extends FlowState, ID> extends ContextualObject {
+abstract class Flow<ID> extends ContextualObject {
   final viewChangeSubject = BehaviorSubject<Screen?>();
-  final Map<ID, S> _states = {};
-  late S _currentState;
-  Future<void> Function()? onCompleted;
-  Future<void> Function()? onCanceled;
+  final Map<ID, FlowState> _states = {};
+  late FlowState _currentState;
+  final Future<void> Function()? _onCompleted;
+  final Future<void> Function()? _onCanceled;
   FlowStatus _status = FlowStatus.idle;
 
-  Flow({this.onCompleted, this.onCanceled});
+  Flow(
+      {Future<void> Function()? onCompleted,
+      Future<void> Function()? onCanceled})
+      : _onCompleted = onCompleted,
+        _onCanceled = onCanceled;
 
   String name();
 
-  @material.mustCallSuper
+  @mustCallSuper
   void init() {
     log('${name()} init');
     _currentState.entry();
@@ -32,8 +36,6 @@ abstract class Flow<S extends FlowState, ID> extends ContextualObject {
 
   @override
   void dispose() {
-    _currentState.exit();
-
     if (_status == FlowStatus.idle) {
       cancel();
     }
@@ -43,7 +45,8 @@ abstract class Flow<S extends FlowState, ID> extends ContextualObject {
     super.dispose();
   }
 
-  void addState({required S state, required ID stateId}) {
+  @protected
+  void addState({required FlowState state, required ID stateId}) {
     _states[stateId] = state;
   }
 
@@ -56,12 +59,13 @@ abstract class Flow<S extends FlowState, ID> extends ContextualObject {
       _status = FlowStatus.completed;
       _currentState.exit();
       log('${name()} is completed');
-      onCompleted?.call();
+      _onCompleted?.call();
     } else {
       log('${name()} cannot be completed because it is already completed or canceled');
     }
   }
 
+  @protected
   bool isCurrentState(ID state) {
     return _states[state] == _currentState;
   }
@@ -71,7 +75,7 @@ abstract class Flow<S extends FlowState, ID> extends ContextualObject {
       _status = FlowStatus.canceled;
       _currentState.exit();
       log('${name()} is canceled');
-      onCanceled?.call();
+      _onCanceled?.call();
     } else {
       log('${name()} cannot be canceled because it is already completed or canceled');
     }
@@ -81,10 +85,12 @@ abstract class Flow<S extends FlowState, ID> extends ContextualObject {
     cancel();
   }
 
+  @protected
   void setInitialState(ID stateId) {
     _currentState = _states[stateId]!;
   }
 
+  @protected
   void setState(ID stateId) {
     _currentState.exit();
     _currentState = _states[stateId]!;
