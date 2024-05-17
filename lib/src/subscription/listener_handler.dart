@@ -88,5 +88,7 @@ class ListenerHandler<T extends Object> extends Disposable {
   @override
   void dispose() {
     _clearResources();
+    _onActive?.dispose();
+    _onInactive?.dispose();
   }
 }
