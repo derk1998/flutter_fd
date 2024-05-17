@@ -1,6 +1,6 @@
 name: flutter_fd
-description: "A new Flutter package project."
-version: 0.0.1
+description: "Flows, MVVM, Subscriptions and more."
+version: 0.1.0
 homepage:
 publish_to: none
 
