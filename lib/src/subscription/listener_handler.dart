@@ -15,6 +15,7 @@ class ListenerHandler<T extends Object> extends ContextualObject {
   final bool _retainLastPublishedValue;
   final bool _removeListenerWhenExpires;
   final bool _synchronous;
+  bool _clearingResources = false;
 
   final Map<WeakKey<Context>, StreamSubscription<T>> _subscriptions = {};
 
@@ -62,6 +63,7 @@ class ListenerHandler<T extends Object> extends ContextualObject {
       }
 
       final callback = listener.lock();
+      _subscriptions[WeakKey(context)]?.cancel();
       _subscriptions[WeakKey(context)] = _subject!.listen((object) {
         _onUpdate!.call(data: object, callback: callback!);
       });
@@ -84,13 +86,21 @@ class ListenerHandler<T extends Object> extends ContextualObject {
   }
 
   void _clearResources() {
-    for (final subscription in _subscriptions.values) {
-      subscription.cancel();
-    }
+    //When the last subscription is canceled, it will trigger this method.
+    //There is no need to perform a clear twice, so it will be ignored.
+    if (!_clearingResources) {
+      _clearingResources = true;
 
-    _subscriptions.clear();
-    _subject?.close();
-    _subject = null;
+      for (final subscription in _subscriptions.values) {
+        subscription.cancel();
+      }
+
+      _subscriptions.clear();
+      _subject?.close();
+      _subject = null;
+
+      _clearingResources = false;
+    }
   }
 
   @override
