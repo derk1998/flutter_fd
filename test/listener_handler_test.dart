@@ -9,15 +9,13 @@ void main() {
   test(
       'Verify if on update listener is triggered when listener is added with retain last published value',
       () async {
-    final onUpdatelistenerContext = Context();
-
     final completer = Completer<void>();
     bool onUpdateListenerCalled = false;
     final listenerHandler = ListenerHandler<int>(
-        onUpdate: Listener.context(({required callback, required data}) {
+        onUpdate: ({required callback, required data}) {
           onUpdateListenerCalled = true;
           completer.complete();
-        }, onUpdatelistenerContext),
+        },
         retainLastPublishedValue: true,
         removeListenerWhenExpires: false);
 
@@ -34,15 +32,13 @@ void main() {
   test(
       'Verify if on update listener is triggered when listener is added and data is published',
       () async {
-    final onUpdatelistenerContext = Context();
-
     final completer = Completer<void>();
     bool onUpdateListenerCalled = false;
     final listenerHandler = ListenerHandler<int>(
-        onUpdate: Listener.context(({required callback, required data}) {
+        onUpdate: ({required callback, required data}) {
           onUpdateListenerCalled = true;
           completer.complete();
-        }, onUpdatelistenerContext),
+        },
         retainLastPublishedValue: false,
         removeListenerWhenExpires: false);
 
@@ -58,16 +54,14 @@ void main() {
 
   test('Verify if callback in on update listener is same as in add listener',
       () async {
-    final onUpdatelistenerContext = Context();
-
     final completer = Completer<void>();
     callback(int data) {}
     void Function(int)? capturedCallback;
     final listenerHandler = ListenerHandler<int>(
-        onUpdate: Listener.context(({required callback, required data}) {
+        onUpdate: ({required callback, required data}) {
           capturedCallback = callback;
           completer.complete();
-        }, onUpdatelistenerContext),
+        },
         retainLastPublishedValue: true,
         removeListenerWhenExpires: false);
 
@@ -81,16 +75,14 @@ void main() {
   });
 
   test('Verify if value in on update listener is same as in publish', () async {
-    final onUpdatelistenerContext = Context();
-
     final completer = Completer<void>();
     callback(int data) {}
     int? capturedData;
     final listenerHandler = ListenerHandler<int>(
-        onUpdate: Listener.context(({required callback, required data}) {
+        onUpdate: ({required callback, required data}) {
           capturedData = data;
           completer.complete();
-        }, onUpdatelistenerContext),
+        },
         retainLastPublishedValue: true,
         removeListenerWhenExpires: false);
 
@@ -106,18 +98,14 @@ void main() {
 
   test('Verify if on active listener is called when first listener is added',
       () async {
-    final onUpdatelistenerContext = Context();
-
-    final onActiveListenerContext = Context();
     bool onActiveListenerCalled = false;
     final completer = Completer<void>();
     final listenerHandler = ListenerHandler<int>(
-        onUpdate: Listener.context(
-            ({required callback, required data}) {}, onUpdatelistenerContext),
-        onActive: Listener.context(() {
+        onUpdate: ({required callback, required data}) {},
+        onActive: () {
           onActiveListenerCalled = true;
           completer.complete();
-        }, onActiveListenerContext),
+        },
         retainLastPublishedValue: false,
         removeListenerWhenExpires: false);
 
@@ -133,18 +121,14 @@ void main() {
 
   test('Verify if on inactive listener is called when last listener is removed',
       () async {
-    final onUpdatelistenerContext = Context();
-
-    final onInactiveListenerContext = Context();
     bool onInactiveListenerCalled = false;
     final completer = Completer<void>();
     final listenerHandler = ListenerHandler<int>(
-        onUpdate: Listener.context(
-            ({required callback, required data}) {}, onUpdatelistenerContext),
-        onInactive: Listener.context(() {
+        onUpdate: ({required callback, required data}) {},
+        onInactive: () {
           onInactiveListenerCalled = true;
           completer.complete();
-        }, onInactiveListenerContext),
+        },
         retainLastPublishedValue: false,
         removeListenerWhenExpires: false);
 
@@ -162,18 +146,14 @@ void main() {
   test(
       'Verify if on inactive listener is called when last listener is expired and remove listener when expires',
       () async {
-    final onUpdatelistenerContext = Context();
-
-    final onInactiveListenerContext = Context();
     bool onInactiveListenerCalled = false;
     final completer = Completer<void>();
     final listenerHandler = ListenerHandler<int>(
-        onUpdate: Listener.context(
-            ({required callback, required data}) {}, onUpdatelistenerContext),
-        onInactive: Listener.context(() {
+        onUpdate: ({required callback, required data}) {},
+        onInactive: () {
           onInactiveListenerCalled = true;
           completer.complete();
-        }, onInactiveListenerContext),
+        },
         retainLastPublishedValue: false,
         removeListenerWhenExpires: true);
 

@@ -8,17 +8,17 @@ class Context extends Disposable {
   void addExpiringListener(
       Listener<void Function(WeakReference<Context>)> listener) {
     _listenerHandler ??= ListenerHandler<WeakReference<Context>>(
-      onUpdate: Listener.context(({required callback, required data}) {
-        if (data.target != null) {
-          callback.call(data);
-        }
-      }, this),
-      onInactive: Listener.context(() {
-        _listenerHandler = null;
-      }, this),
-      retainLastPublishedValue: false,
-      removeListenerWhenExpires: false,
-    );
+        onUpdate: ({required callback, required data}) {
+          if (data.target != null) {
+            callback.call(data);
+          }
+        },
+        retainLastPublishedValue: false,
+        removeListenerWhenExpires: false,
+        synchronous: true // Events need to be handled synchronously to ensure
+        // listeners getting a trigger that this context is expiring before
+        // it is expired
+        );
 
     _listenerHandler!.addListener(listener);
   }

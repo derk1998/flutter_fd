@@ -1,37 +1,38 @@
 import 'dart:async';
 
 import 'context.dart';
-import 'disposable.dart';
+import 'contextual_object.dart';
 import 'listener.dart';
 import 'weak_key.dart';
 import 'package:rxdart/rxdart.dart';
 
-class ListenerHandler<T extends Object> extends Disposable {
+class ListenerHandler<T extends Object> extends ContextualObject {
   Subject<T>? _subject;
-  final Listener<
-          void Function({required T data, required void Function(T) callback})>
+  void Function({required T data, required void Function(T) callback})?
       _onUpdate;
-  final Listener<void Function()>? _onInactive;
-  final Listener<void Function()>? _onActive;
+  void Function()? _onInactive;
+  void Function()? _onActive;
   final bool _retainLastPublishedValue;
   final bool _removeListenerWhenExpires;
+  final bool _synchronous;
 
-  final Map<WeakKey<Context>, StreamSubscription<T>> _listeners = {};
+  final Map<WeakKey<Context>, StreamSubscription<T>> _subscriptions = {};
 
   ListenerHandler(
-      {required Listener<
-              void Function(
-                  {required T data, required void Function(T) callback})>
+      {required void Function(
+              {required T data, required void Function(T) callback})
           onUpdate,
-      Listener<void Function()>? onActive,
-      Listener<void Function()>? onInactive,
+      Function()? onActive,
+      Function()? onInactive,
       required bool retainLastPublishedValue,
-      required bool removeListenerWhenExpires})
+      required bool removeListenerWhenExpires,
+      bool synchronous = false})
       : _onUpdate = onUpdate,
         _onActive = onActive,
         _onInactive = onInactive,
         _retainLastPublishedValue = retainLastPublishedValue,
-        _removeListenerWhenExpires = removeListenerWhenExpires;
+        _removeListenerWhenExpires = removeListenerWhenExpires,
+        _synchronous = synchronous;
 
   void publish(T data) {
     _createSubject();
@@ -41,9 +42,11 @@ class ListenerHandler<T extends Object> extends Disposable {
 
   void _createSubject() {
     if (_retainLastPublishedValue) {
-      _subject ??= BehaviorSubject(onCancel: _onCancel, onListen: _onListen);
+      _subject ??= BehaviorSubject(
+          onCancel: _onCancel, onListen: _onListen, sync: _synchronous);
     } else {
-      _subject ??= PublishSubject(onCancel: _onCancel, onListen: _onListen);
+      _subject ??= PublishSubject(
+          onCancel: _onCancel, onListen: _onListen, sync: _synchronous);
     }
   }
 
@@ -55,40 +58,48 @@ class ListenerHandler<T extends Object> extends Disposable {
       if (_removeListenerWhenExpires) {
         context.target!.addExpiringListener(Listener((ctx) {
           removeListener(ctx);
-        }, listener));
+        }, this));
       }
 
       final callback = listener.lock();
-      _listeners[WeakKey(context)] = _subject!.listen((object) {
-        _onUpdate.lock()?.call(data: object, callback: callback!);
+      _subscriptions[WeakKey(context)] = _subject!.listen((object) {
+        _onUpdate!.call(data: object, callback: callback!);
       });
+      listener.dispose();
     }
   }
 
   void _onCancel() {
-    _onInactive?.lock()?.call();
+    _onInactive?.call();
     _clearResources();
   }
 
   void _onListen() {
-    _onActive?.lock()?.call();
+    _onActive?.call();
   }
 
   void removeListener(WeakReference<Context> context) {
-    _listeners[WeakKey(context)]?.cancel();
-    _listeners.remove(WeakKey(context));
+    _subscriptions[WeakKey(context)]?.cancel();
+    _subscriptions.remove(WeakKey(context));
   }
 
   void _clearResources() {
+    for (final subscription in _subscriptions.values) {
+      subscription.cancel();
+    }
+
+    _subscriptions.clear();
     _subject?.close();
     _subject = null;
-    _listeners.clear();
   }
 
   @override
   void dispose() {
     _clearResources();
-    _onActive?.dispose();
-    _onInactive?.dispose();
+    _onUpdate = null;
+    _onActive = null;
+    _onInactive = null;
+
+    super.dispose();
   }
 }

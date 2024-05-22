@@ -1,20 +1,21 @@
 import 'context.dart';
-import 'contextual_object.dart';
 import 'disposable.dart';
 import 'listener.dart';
 import 'listener_handler.dart';
 
-class ConditionalObject<T extends Disposable> extends ContextualObject {
-  ConditionalObject(this._creator, {this.dependencies});
+class ConditionalObject<T extends Disposable> {
+  ConditionalObject(this._creator,
+      {List<ConditionalObject<dynamic>>? dependencies})
+      : _dependencies = dependencies;
 
   ListenerHandler<WeakReference<T>>? _listenerHandler;
-  List<ConditionalObject<dynamic>>? dependencies;
+  final List<ConditionalObject<dynamic>>? _dependencies;
   List<WeakReference<dynamic>>? _objects;
   final T Function(List<dynamic>? dependencies) _creator;
   T? _object;
 
   bool _areDependenciesRetrieved() {
-    return _objects!.length == dependencies!.length;
+    return _objects!.length == _dependencies!.length;
   }
 
   void _createObject() {
@@ -24,32 +25,31 @@ class ConditionalObject<T extends Disposable> extends ContextualObject {
 
   void addListener(Listener<void Function(WeakReference<T>)> listener) {
     _listenerHandler ??= ListenerHandler<WeakReference<T>>(
-      onUpdate: Listener(({required callback, required data}) {
+      onUpdate: ({required callback, required data}) {
         if (data.target != null) {
           callback.call(data);
         }
-      }, this),
-      onActive: Listener(() {
-        if (dependencies != null) {
+      },
+      onActive: () {
+        if (_dependencies != null) {
           _objects = [];
-          for (final dependency in dependencies!) {
+          for (final dependency in _dependencies) {
             dependency.addListener(Listener((object) {
               _objects!.add(object);
               if (_areDependenciesRetrieved()) {
                 _createObject();
               }
-            }, this));
+            }, listener));
           }
         } else {
           _createObject();
         }
-      }, this),
-      onInactive: Listener(() {
-        _listenerHandler = null;
+      },
+      onInactive: () {
         _object!.dispose();
         _object = null;
         _objects?.clear();
-      }, this),
+      },
       retainLastPublishedValue: true,
       removeListenerWhenExpires: true,
     );
@@ -60,8 +60,8 @@ class ConditionalObject<T extends Disposable> extends ContextualObject {
   void removeListener(WeakReference<Context> context) {
     _listenerHandler?.removeListener(context);
 
-    if (dependencies != null) {
-      for (final dependency in dependencies!) {
+    if (_dependencies != null) {
+      for (final dependency in _dependencies) {
         dependency.removeListener(context);
       }
     }

@@ -1,3 +1,5 @@
+import 'package:meta/meta.dart';
+
 import 'context.dart';
 import 'disposable.dart';
 
@@ -14,6 +16,7 @@ class ContextualObject implements IContextualObject, Disposable {
     return WeakReference(_context!);
   }
 
+  @mustCallSuper
   @override
   void dispose() {
     _context?.dispose();
