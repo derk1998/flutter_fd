@@ -83,8 +83,11 @@ abstract class Flow<ID> extends ContextualObject {
     }
   }
 
+  @nonVirtual
   void onPopInvoked() {
-    cancel();
+    if (!_currentState.pop()) {
+      cancel();
+    }
   }
 
   @protected

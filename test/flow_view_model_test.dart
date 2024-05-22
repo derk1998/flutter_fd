@@ -14,7 +14,14 @@ class TestFlow extends Flow<StateId> {
   void Function()? onPopped;
 
   TestFlow({this.onInit, this.onDispose, this.onPopped}) {
-    addState(state: FlowState(name: 'start'), stateId: StateId.start);
+    addState(
+        state: FlowState(
+          name: 'start',
+          onPop: () {
+            onPopped?.call();
+          },
+        ),
+        stateId: StateId.start);
 
     setInitialState(StateId.start);
   }
@@ -29,12 +36,6 @@ class TestFlow extends Flow<StateId> {
   void dispose() {
     onDispose?.call();
     super.dispose();
-  }
-
-  @override
-  void onPopInvoked() {
-    super.onPopInvoked();
-    onPopped?.call();
   }
 
   @override

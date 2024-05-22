@@ -39,4 +39,22 @@ void main() {
 
     expect(onExitCalled, isTrue);
   });
+
+  test('Verify if onPop is called when pop is called', () async {
+    bool onPopCalled = false;
+    final completer = Completer<void>();
+    final state = FlowState(
+      name: '',
+      onPop: () {
+        onPopCalled = true;
+        completer.complete();
+      },
+    );
+
+    state.pop();
+
+    await completer.future;
+
+    expect(onPopCalled, isTrue);
+  });
 }
