@@ -49,6 +49,9 @@ class ConditionalObject<T extends Disposable> {
         _object!.dispose();
         _object = null;
         _objects?.clear();
+
+        _listenerHandler?.dispose();
+        _listenerHandler = null;
       },
       retainLastPublishedValue: true,
       removeListenerWhenExpires: true,
